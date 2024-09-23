@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Bash Assignment 1 - Teacher/Student Login Program
-# Tommy Condon - 20101841
+# Bash Assignment 1
+# Arithmetic Learning App
+# with Teacher/Student Login Program
+#
+# by Tommy Condon - 20101841
 # github.com/tommyc2
 
 LEVEL=2
