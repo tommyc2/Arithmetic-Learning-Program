@@ -3,13 +3,27 @@
 # Bash Assignment 1
 # Arithmetic Learning App
 # with Teacher/Student Login Program
-#
+# ---------------------------------
 # by Tommy Condon - 20101841
 # github.com/tommyc2
+
+# Random number code source: https://www.baeldung.com/linux/bash-draw-random-ints
 
 LEVEL=2
 MENU_CHOICE=0
 NUM_QUESTIONS=20
+
+declare -a QUIZ_RESULTS=()
+
+# initialize quiz results array
+for((i=0; i<20; i++))
+do
+    for((j=0; j<6; j++))
+    do
+        QUIZ_RESULTS[${i}, ${j}]=0
+    done
+done
+
 
 menu()
 {
@@ -19,8 +33,8 @@ menu()
     ----------------
     Login
     ---------------
-    1. Teacher
-    2. Student
+    1. Teacher Login
+    2. Student Login
     ---------------
     -->  """
     read LEVEL
@@ -61,12 +75,11 @@ menu()
             display_learn_tables_menu
             ;;
         2)
-            take_quiz
+            run_quiz
             ;;
         3)
-            echo "Exiting program..."
-            sleep 2
-            exit 1
+            echo "Exiting program...Bye bye"
+            exit 0 # exiting program 
             ;;
         *)
 	    echo "Invalid student option. Please enter an option "
@@ -104,9 +117,9 @@ display_learn_tables_menu()
 
 learn_tables()
 { 
-    until [$1 -lt 1 -a $1 -gt 4 ]
+    until ["$1" -lt 1 -a "$1" -gt 4 ]
     do
-	    case $1 in
+	    case "$1" in
 		    1)
 			    echo "Addition"
 		            echo "--------"
@@ -216,16 +229,60 @@ learn_tables()
 }
 
 
-take_quiz()
+run_quiz()
 {
+    LIVES=3
+
     echo ""
     echo "----------------"
-    echo "TAKE QUIZ SECTION"
+    echo "TAKE QUIZ!!!"
     echo "-----------------"
+    echo ""
+    echo "Enter a number: "
+    read NUMBER
 
-    for ((i=0; i <= $NUM_QUESTIONS; i++))
+    for ((i=1; i <= 20; i++)) # ONE QUESTION FOR EACH ARITHMETIC OPERATION FOR NOW.....
+    # can increase this number from 5 to 20 once function is finished
     do
-	    echo "Question $i:	"
+        random_num=$(($RANDOM % 12))
+
+        op=$(($RANDOM % 4))
+
+        if [ $op -eq 1 -o $op -eq 0 ]
+        then
+            ans=$((NUMBER + $random_num))
+            op="+"
+        elif [ $op -eq 2 ]
+        then    
+            ans=$((NUMBER - $random_num))
+            op="-"
+        elif [ $op -eq 3 ]
+        then
+            ans=$((NUMBER * $random_num))
+            op="x"
+        elif [ $op -eq 4 ]
+        then
+            ans=$((NUMBER / $random_num))
+            op="/"
+        else
+            echo "doesnt work"
+        fi
+
+        until [ $ANSWER -eq $ans ]
+        do
+
+            echo "Question ($i): What is $NUMBER $op $random_num ?: "
+            read ANSWER
+
+            if [ $ANSWER -eq $ans ]
+            then
+                echo "Correct answer!"
+                #LIVES=$LIVES + 1 # temporary
+            else
+                echo "Incorrect. Please try again"
+                #LIVES=$LIVES - 1 ] # temporary
+            fi
+        done
     done
 }
 
