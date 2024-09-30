@@ -9,20 +9,15 @@
 
 # Random number code source: https://www.baeldung.com/linux/bash-draw-random-ints
 
+# Create CSV file for storing student results
+touch QUIZ_RESULTS.csv
+
+
 LEVEL=2
 MENU_CHOICE=0
 NUM_QUESTIONS=20
 
-declare -a QUIZ_RESULTS=()
-
-# initialize quiz results array
-for((i=0; i<20; i++))
-do
-    for((j=0; j<6; j++))
-    do
-        QUIZ_RESULTS[${i}, ${j}]=0
-    done
-done
+#declare -a QUIZ_RESULTS=()
 
 
 menu()
@@ -231,20 +226,20 @@ learn_tables()
 
 run_quiz()
 {
-    LIVES=3
 
     echo ""
     echo "----------------"
     echo "TAKE QUIZ!!!"
     echo "-----------------"
     echo ""
-    echo "Enter a number: "
+    echo "Enter a number -->"
     read NUMBER
 
-    for ((i=1; i <= 20; i++)) # ONE QUESTION FOR EACH ARITHMETIC OPERATION FOR NOW.....
+    for ((i=0; i<20; i++)) # ONE QUESTION FOR EACH ARITHMETIC OPERATION FOR NOW.....
     # can increase this number from 5 to 20 once function is finished
     do
         random_num=$(($RANDOM % 12))
+        ans=0
 
         op=$(($RANDOM % 4))
 
@@ -265,25 +260,55 @@ run_quiz()
             ans=$((NUMBER / $random_num))
             op="/"
         else
-            echo "doesnt work"
+            echo "Error"
         fi
 
-        until [ $ANSWER -eq $ans ]
-        do
+        echo "Question ($((i+1))): What is $NUMBER $op $random_num ?: "
+        read USER_ANSWER
 
-            echo "Question ($i): What is $NUMBER $op $random_num ?: "
-            read ANSWER
+        if [ $USER_ANSWER -eq $ans ]
+        then
+            echo "Correct answer!"
 
-            if [ $ANSWER -eq $ans ]
-            then
-                echo "Correct answer!"
-                #LIVES=$LIVES + 1 # temporary
-            else
-                echo "Incorrect. Please try again"
-                #LIVES=$LIVES - 1 ] # temporary
-            fi
-        done
+            # Write results to a file (CSV)
+            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,1\n" >> QUIZ_RESULTS.csv
+
+            #j=0
+
+            #QUIZ_RESULTS["$i,$j"]=$NUMBER
+            #QUIZ_RESULTS["$i,$((j+1))"]=$op
+            #QUIZ_RESULTS["$i,$((j+2))"]=$random_num
+            #QUIZ_RESULTS["$i,$((j+3))"]=$USER_ANSWER
+            #QUIZ_RESULTS["$i,$((j+4))"]=$ans
+            #QUIZ_RESULTS["$i,$((j+5))"]=1
+
+            # check if populated
+            #for((i=0; i<20; i++))
+            #do
+            #    for((j=0;j<6;j++))
+            #    do
+            #        #echo -n "${QUIZ_RESULTS["$i,$j"]}, "
+            #    done
+            #done
+
+        else
+            echo "Incorrect."
+
+            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,0" >> QUIZ_RESULTS.csv
+
+            #QUIZ_RESULTS["$i,$j"]=$NUMBER
+            #QUIZ_RESULTS["$i,$((j+1))"]=$op
+            #QUIZ_RESULTS["$i,$((j+2))"]=$random_num
+            #QUIZ_RESULTS["$i,$((j+3))"]=$USER_ANSWER
+            #QUIZ_RESULTS["$i,$((j+4))"]=$ans
+            #QUIZ_RESULTS["$i,$((j+5))"]=1
+        fi
+
     done
+
+    echo "Quiz finished!"
 }
 
-menu
+menu # run menu at startup
+
+
