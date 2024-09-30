@@ -226,6 +226,8 @@ learn_tables()
 
 run_quiz()
 {
+    LIVES=3 # 3 lives at the start of every quiz
+    counter=0 # for tracking number of consecutive wrong answers, resets after quiz
 
     echo ""
     echo "----------------"
@@ -266,12 +268,21 @@ run_quiz()
         echo "Question ($((i+1))): What is $NUMBER $op $random_num ?: "
         read USER_ANSWER
 
+        # To complete properly, need clarification on what 'exit quiz' refers to...
+        if [ $USER_ANSWER -eq 999 ]
+        then
+            echo "Exiting quiz..."
+            menu
+        fi
+
         if [ $USER_ANSWER -eq $ans ]
         then
             echo "Correct answer!"
 
+            counter=0 # reseting the counter as answer is correct
+
             # Write results to a file (CSV)
-            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,1\n" >> QUIZ_RESULTS.csv
+            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,1" >> QUIZ_RESULTS.csv
 
             #j=0
 
@@ -294,7 +305,32 @@ run_quiz()
         else
             echo "Incorrect."
 
+            counter=$(($counter+1))
+            echo "Counter value: $counter"
+
             echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,0" >> QUIZ_RESULTS.csv
+
+            if [ $counter -eq 2 ] || [ $counter -eq 4 ] || [ $counter -eq 6 ]
+            then
+                LIVES=$(($LIVES-1))
+
+                if [ "$LIVES" -eq 0 ]
+                then
+                    echo "You have no lives left. Quiz is now over."
+                    read -p "Do you want to start a new quiz? (y/n):  " RESPONSE
+
+                    if [ "$RESPONSE" == 'y' ] || [ "$RESPONSE" == 'Y' ]
+                    then
+                        run_quiz
+                    else
+                        # back to menu code....
+                        exit 0
+                    fi
+                fi
+
+                echo "You have $LIVES lives remaining."
+            fi
+
 
             #QUIZ_RESULTS["$i,$j"]=$NUMBER
             #QUIZ_RESULTS["$i,$((j+1))"]=$op
