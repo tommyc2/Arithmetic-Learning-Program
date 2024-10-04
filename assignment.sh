@@ -14,7 +14,6 @@ touch QUIZ_RESULTS.csv
 
 
 LEVEL=2
-MENU_CHOICE=0
 NUM_QUESTIONS=20
 
 #declare -a QUIZ_RESULTS=()
@@ -22,7 +21,6 @@ NUM_QUESTIONS=20
 
 menu()
 {
-    MENU_CHOICE=0
 
     echo """
     ----------------
@@ -36,36 +34,55 @@ menu()
 
     if [ $LEVEL -eq 1 ] # Login as teacher
     then
-
-	echo "---------------------"
+        echo "---------------------"
         echo "Teachers Menu Options"
-	echo "---------------------"
+        echo "---------------------"
 
-        # Until loop here with teacher options...
+        teacher_login
+
+    # Until loop here with teacher options...
     elif [ $LEVEL -eq 2 ] # Student Login
     then
+        student_login # Calling student menu function
+    else
+        echo "Invalid Choice in Menu Function"
+	echo ""
+    fi
+}
 
-	echo "----------------"
-        echo "Student Menu"
-	echo "----------------"
+student_login()
+{
+    echo " TO DO"
+}
 
-        until [ $MENU_CHOICE -ge 1 ] && [ $MENU_CHOICE -le 3 ]
-        do
-	    echo "-----------------"
-            echo "1. To Learn Tables"
-            echo "2. To Take Quiz"
-            echo "3. To Exit Program"
-	    echo "------------------"
-            read MENU_CHOICE
+teacher_login()
+{
+    echo " TO DO"
+}
 
-            if [ $MENU_CHOICE -lt 1 -o $MENU_CHOICE -gt 3 ]
-            then
-                echo "Please enter an option in the range 1 to 3 only!"
-		echo ""
-            fi
-        done
+student_menu()
+{
+    echo "----------------"
+    echo "Student Menu"
+    echo "----------------"
 
-        case $MENU_CHOICE in
+    until [ $MENU_CHOICE -ge 1 ] && [ $MENU_CHOICE -le 3 ]
+    do
+        echo "-----------------"
+        echo "1. To Learn Tables"
+        echo "2. To Take Quiz"
+        echo "3. To Exit Program"
+        echo "------------------"
+        read MENU_CHOICE
+
+        if [ $MENU_CHOICE -lt 1 -o $MENU_CHOICE -gt 3 ]
+        then
+            echo "Please enter an option in the range 1 to 3 only!"
+            echo ""
+        fi
+    done
+
+    case $MENU_CHOICE in 
         1)
             display_learn_tables_menu
             ;;
@@ -77,16 +94,9 @@ menu()
             exit 0 # exiting program 
             ;;
         *)
-	    echo "Invalid student option. Please enter an option "
-	    echo ""    
-
-        esac
-
-
-    else
-        echo "Invalid Choice in Menu Function"
-	echo ""
-    fi
+        echo "Invalid student option. Please enter an option "
+        echo ""    
+    esac
 }
 
 
@@ -198,12 +208,12 @@ learn_tables()
 
                             for ((i=0; i<=12; i++))
                             do
-				    until [ $ANSWER -eq $(($NUM/i)) ]
+				    until [ $ANSWER -eq $(($NUM / $i)) ]
                                     do
                                             echo "What is $NUM / $i?:   "
                                             read ANSWER
 
-                                            if [ $ANSWER -eq $(($NUM/$i)) ]
+                                            if [ $ANSWER -eq $(($NUM / $i)) ]
                                             then
                                                     echo "Correct answer!"
                                             else
@@ -226,8 +236,8 @@ learn_tables()
 
 run_quiz()
 {
-    LIVES=3 # 3 lives at the start of every quiz
-    counter=0 # for tracking number of consecutive wrong answers, resets after quiz
+    local LIVES=3 # 3 lives at the start of every quiz
+    local counter=0 # for tracking number of consecutive wrong answers, resets after quiz
 
     echo ""
     echo "----------------"
