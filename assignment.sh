@@ -9,14 +9,11 @@
 
 # Random number code source: https://www.baeldung.com/linux/bash-draw-random-ints
 
-# Create CSV file for storing student results
+# Create CSV file for storing student results -- TO COMPELTE FULLY
 touch QUIZ_RESULTS.csv
 
-
-LEVEL=2
 NUM_QUESTIONS=20
-
-#declare -a QUIZ_RESULTS=()
+USERS_FILE="users.csv"
 
 
 menu()
@@ -40,20 +37,46 @@ menu()
 
         teacher_login
 
-    # Until loop here with teacher options...
     elif [ $LEVEL -eq 2 ] # Student Login
     then
         student_login # Calling student menu function
     else
-        echo "Invalid Choice in Menu Function"
-	echo ""
+        echo -e "Invalid Choice in Menu Function.\n\r"
+        menu # function calling itself to start again
     fi
 }
 
 student_login()
 {
-    echo " TO DO"
+    read -p "Enter Username: " USERNAME
+    read -p "Enter Password: " PASSWORD
+
+    echo "Authenicating Login...."
+
+    # TODO ----> check regex here 
+
+    if grep -q "$USERNAME," "$USERS_FILE"
+    then
+        if grep -q "$USERNAME,$PASSWORD," "$USERS_FILE"
+        then
+            echo "Hello $USERNAME!"
+            echo "-----------------"
+
+            # TODO: Make directories and stuff here for each student
+
+            student_menu
+        else
+            echo "Wrong password. Please try again."
+            student_login
+        fi
+    else
+        echo "User does not exist."
+        student_login
+    fi
+
 }
+
+
 
 teacher_login()
 {
