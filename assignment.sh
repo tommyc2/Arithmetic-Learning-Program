@@ -1,19 +1,17 @@
 #!/bin/bash
-
+#
 # Bash Assignment 1
 # Arithmetic Learning App
 # with Teacher/Student Login Program
 # ---------------------------------
 # by Tommy Condon - 20101841
 # github.com/tommyc2
-
+#
 # Random number code source: https://www.baeldung.com/linux/bash-draw-random-ints
 
-# Create CSV file for storing student results -- TO COMPELTE FULLY
-touch QUIZ_RESULTS.csv
-
-NUM_QUESTIONS=20
-USERS_FILE="users.csv"
+NUM_QUESTIONS=20 # number of questions assigned to student
+USERS_FILE="users.csv" # list of users stored locally
+declare LOGGED_IN_USER # Username of user logged in
 
 
 menu()
@@ -25,6 +23,7 @@ menu()
     ---------------
     1. Teacher Login
     2. Student Login
+    3. Quit
     ---------------
     -->  """
     read LEVEL
@@ -40,6 +39,10 @@ menu()
     elif [ $LEVEL -eq 2 ] # Student Login
     then
         student_login # Calling student menu function
+    elif [ $LEVEL -eq 3 ]
+    then
+        echo "Exiting program...Bye bye"
+        exit 0
     else
         echo -e "Invalid Choice in Menu Function.\n\r"
         menu # function calling itself to start again
@@ -59,12 +62,17 @@ student_login()
     then
         if grep -q "$USERNAME,$PASSWORD," "$USERS_FILE"
         then
+            echo "-----------------"
             echo "Hello $USERNAME!"
             echo "-----------------"
 
-            # TODO: Make directories and stuff here for each student
-
+            LOGGED_IN_USER=$USERNAME
             student_menu
+
+            ###################################################
+            # BUG here --> goes to main menu when logging out for first time
+            ###################################################
+
         else
             echo "Wrong password. Please try again."
             student_login
@@ -94,11 +102,12 @@ student_menu()
         echo "-----------------"
         echo "1. To Learn Tables"
         echo "2. To Take Quiz"
-        echo "3. To Exit Program"
+        echo "3. Log Out"
+        echo "4 Quit the program"
         echo "------------------"
         read MENU_CHOICE
 
-        if [ $MENU_CHOICE -lt 1 -o $MENU_CHOICE -gt 3 ]
+        if [ $MENU_CHOICE -lt 1 -o $MENU_CHOICE -gt 4 ]
         then
             echo "Please enter an option in the range 1 to 3 only!"
             echo ""
@@ -113,13 +122,23 @@ student_menu()
             run_quiz
             ;;
         3)
+            logout
+            ;;
+        4)
             echo "Exiting program...Bye bye"
             exit 0 # exiting program 
             ;;
         *)
-        echo "Invalid student option. Please enter an option "
-        echo ""    
+            echo "Invalid student option. Please enter an option "
+            echo ""
+            ;;    
     esac
+}
+
+logout()
+{
+    unset $LOGGED_IN_USER
+    menu
 }
 
 
