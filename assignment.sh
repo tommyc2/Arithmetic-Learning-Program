@@ -278,6 +278,7 @@ learn_tables()
 
 run_quiz()
 {
+    local file=$USER"-"$(date "+%Y%m%d%H%M%S")"-"$(((RANDOM%999+1)))".csv"
     local LIVES=3 # 3 lives at the start of every quiz
     local counter=0 # for tracking number of consecutive wrong answers, resets after quiz
 
@@ -334,25 +335,7 @@ run_quiz()
             counter=0 # reseting the counter as answer is correct
 
             # Write results to a file (CSV)
-            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,1" >> QUIZ_RESULTS.csv
-
-            #j=0
-
-            #QUIZ_RESULTS["$i,$j"]=$NUMBER
-            #QUIZ_RESULTS["$i,$((j+1))"]=$op
-            #QUIZ_RESULTS["$i,$((j+2))"]=$random_num
-            #QUIZ_RESULTS["$i,$((j+3))"]=$USER_ANSWER
-            #QUIZ_RESULTS["$i,$((j+4))"]=$ans
-            #QUIZ_RESULTS["$i,$((j+5))"]=1
-
-            # check if populated
-            #for((i=0; i<20; i++))
-            #do
-            #    for((j=0;j<6;j++))
-            #    do
-            #        #echo -n "${QUIZ_RESULTS["$i,$j"]}, "
-            #    done
-            #done
+            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,1" >> $file
 
         else
             echo "Incorrect."
@@ -360,7 +343,7 @@ run_quiz()
             counter=$(($counter+1))
             echo "Counter value: $counter"
 
-            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,0" >> QUIZ_RESULTS.csv
+            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,0" >> $file
 
             if [ $counter -eq 2 ] || [ $counter -eq 4 ] || [ $counter -eq 6 ]
             then
@@ -382,14 +365,6 @@ run_quiz()
 
                 echo "You have $LIVES lives remaining."
             fi
-
-
-            #QUIZ_RESULTS["$i,$j"]=$NUMBER
-            #QUIZ_RESULTS["$i,$((j+1))"]=$op
-            #QUIZ_RESULTS["$i,$((j+2))"]=$random_num
-            #QUIZ_RESULTS["$i,$((j+3))"]=$USER_ANSWER
-            #QUIZ_RESULTS["$i,$((j+4))"]=$ans
-            #QUIZ_RESULTS["$i,$((j+5))"]=1
         fi
 
     done
