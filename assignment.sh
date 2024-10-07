@@ -68,7 +68,6 @@ student_login()
 
             LOGGED_IN_USER=$USERNAME
             student_menu
-
             ###################################################
             # BUG here --> goes to main menu when logging out for first time
             ###################################################
@@ -97,22 +96,13 @@ student_menu()
     echo "Student Menu"
     echo "----------------"
 
-    until [ $MENU_CHOICE -ge 1 ] && [ $MENU_CHOICE -le 3 ]
-    do
-        echo "-----------------"
-        echo "1. To Learn Tables"
-        echo "2. To Take Quiz"
-        echo "3. Log Out"
-        echo "4 Quit the program"
-        echo "------------------"
-        read MENU_CHOICE
-
-        if [ $MENU_CHOICE -lt 1 -o $MENU_CHOICE -gt 4 ]
-        then
-            echo "Please enter an option in the range 1 to 3 only!"
-            echo ""
-        fi
-    done
+    echo "-----------------"
+    echo "1. To Learn Tables"
+    echo "2. To Take Quiz"
+    echo "3. Log Out"
+    echo "4 Quit the program"
+    echo "------------------"
+    read MENU_CHOICE
 
     case $MENU_CHOICE in 
         1)
