@@ -14,7 +14,6 @@ USERS_FILE="users.csv" # list of users stored locally
 declare LOGGED_IN_USER # Username of user logged in
 declare -a USERDETAILS
 
-
 menu()
 {
 
@@ -69,13 +68,15 @@ student_login()
         read -p "Enter your password: " PASSWORD
         if [[ ! $PASSWORD =~ ^[[:alnum:]]+$ ]]
         then
-            echo "ERROR: Password must contain letters and numbers only"
+            echo "ERROR: Username must contain letters and numbers only"
         fi
     done
 
+    ENCRYPTED_PASSWORD=$(echo $PASSWORD | openssl dgst -sha256 | cut -d' ' -f2)
+
     if grep -q "$USERNAME," "$USERS_FILE"
     then
-        if grep -q "$USERNAME,$PASSWORD," "$USERS_FILE"
+        if grep -q "$USERNAME,$ENCRYPTED_PASSWORD," "$USERS_FILE"
         then
             echo "-----------------"
             echo "Hello $USERNAME!"
@@ -83,16 +84,26 @@ student_login()
 
             LOGGED_IN_USER=$USERNAME
 
-            local USER_LINE=$(grep -C 0 "$USERNAME,$PASSWORD" "$USERS_FILE") # the line where the user details are stored, 0 specifies print no lines above/below, just the line
+            local USER_LINE=$(grep -C 0 "$USERNAME,$ENCRYPTED_PASSWORD" "$USERS_FILE") # the line where the user details are stored, 0 specifies print no lines above/below, just the line
             local USER_LINE_FOR_ARRAY=$(echo "$USER_LINE" | tr ',' ' ') # REPLACES ','' WITH SPACE
             echo "$USER_LINE_FOR_ARRAY"
 
             USERDETAILS=($USER_LINE_FOR_ARRAY)
-            
-            echo "${#USERDETAILS[@]}"
 
+            FIRSTNAME=${USERDETAILS[0]}
+            USERNAME=${USERDETAILS[1]}
+            PASS=${USERDETAILS[2]}
+            LEVEL=${USERDETAILS[3]}
+            CLASS=${USERDETAILS[4]}
+            QUIZTYPE=${USERDETAILS[5]}
+            TABLENUM=${USERDETAILS[6]}
+            MAXNUM=${USERDETAILS[7]}
+            DOJOPOINTS=${USERDETAILS[8]}
+            TEACHER=${USERDETAILS[9]}
 
             echo "Logged in as: $LOGGED_IN_USER"
+
+
             student_menu
 
         else
@@ -105,8 +116,6 @@ student_login()
     fi
 
 }
-
-
 
 teacher_login()
 {
