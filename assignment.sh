@@ -12,6 +12,7 @@
 NUM_QUESTIONS=20 # number of questions assigned to student
 USERS_FILE="users.csv" # list of users stored locally
 declare LOGGED_IN_USER # Username of user logged in
+declare -a USERDETAILS
 
 
 menu()
@@ -51,12 +52,26 @@ menu()
 
 student_login()
 {
-    read -p "Enter Username: " USERNAME
-    read -p "Enter Password: " PASSWORD
+    local USERNAME
+    local PASSWORD
 
-    echo "Authenicating Login...."
+    until [[ $USERNAME =~ ^[[:alnum:]]+$ ]]
+    do
+        read -p "Enter your username (e.g. tcondon007): " USERNAME
+        if [[ ! $USERNAME =~ ^[[:alnum:]]+$ ]]
+        then
+            echo "ERROR: Username must contain letters and numbers only"
+        fi
+    done
 
-    # TODO ----> check regex here 
+    until [[ $PASSWORD =~ ^[[:alnum:]]+$ ]]
+    do
+        read -p "Enter your password: " PASSWORD
+        if [[ ! $PASSWORD =~ ^[[:alnum:]]+$ ]]
+        then
+            echo "ERROR: Password must contain letters and numbers only"
+        fi
+    done
 
     if grep -q "$USERNAME," "$USERS_FILE"
     then
@@ -67,10 +82,18 @@ student_login()
             echo "-----------------"
 
             LOGGED_IN_USER=$USERNAME
+
+            local USER_LINE=$(grep -C 0 "$USERNAME,$PASSWORD" "$USERS_FILE") # the line where the user details are stored, 0 specifies print no lines above/below, just the line
+            local USER_LINE_FOR_ARRAY=$(echo "$USER_LINE" | tr ',' ' ') # REPLACES ','' WITH SPACE
+            echo "$USER_LINE_FOR_ARRAY"
+
+            USERDETAILS=($USER_LINE_FOR_ARRAY)
+            
+            echo "${#USERDETAILS[@]}"
+
+
+            echo "Logged in as: $LOGGED_IN_USER"
             student_menu
-            ###################################################
-            # BUG here --> goes to main menu when logging out for first time
-            ###################################################
 
         else
             echo "Wrong password. Please try again."
