@@ -26,20 +26,15 @@ menu()
     3. Quit
     ---------------
     -->  """
-    read LEVEL
+    read OPTION
 
-    if [ $LEVEL -eq 1 ] # Login as teacher
+    if [ $OPTION -eq 1 ] # Login as teacher
     then
-        echo "---------------------"
-        echo "Teachers Menu Options"
-        echo "---------------------"
-
         teacher_login
-
-    elif [ $LEVEL -eq 2 ] # Student Login
+    elif [ $OPTION -eq 2 ] # Student Login
     then
         student_login # Calling student menu function
-    elif [ $LEVEL -eq 3 ]
+    elif [ $OPTION -eq 3 ]
     then
         echo "Exiting program...Bye bye"
         exit 0
@@ -119,7 +114,149 @@ student_login()
 
 teacher_login()
 {
-    echo " TO DO"
+    local USERNAME
+    local PASSWORD
+
+    until [[ $USERNAME =~ ^[[:alnum:]]+$ ]]
+    do
+        read -p "Enter your username (e.g. tcondon007): " USERNAME
+        if [[ ! $USERNAME =~ ^[[:alnum:]]+$ ]]
+        then
+            echo "ERROR: Username must contain letters and numbers only"
+        fi
+    done
+
+    until [[ $PASSWORD =~ ^[[:alnum:]]+$ ]]
+    do
+        read -p "Enter your password: " PASSWORD
+        if [[ ! $PASSWORD =~ ^[[:alnum:]]+$ ]]
+        then
+            echo "ERROR: Username must contain letters and numbers only"
+        fi
+    done
+
+    ENCRYPTED_PASSWORD=$(echo $PASSWORD | openssl dgst -sha256 | cut -d' ' -f2)
+
+    if grep -q "$USERNAME," "$USERS_FILE"
+    then
+        if grep -q "$USERNAME,$ENCRYPTED_PASSWORD," "$USERS_FILE"
+        then
+            echo "-----------------"
+            echo "Hello $USERNAME!"
+            echo "-----------------"
+
+            LOGGED_IN_USER=$USERNAME
+
+            local USER_LINE=$(grep -C 0 "$USERNAME,$ENCRYPTED_PASSWORD" "$USERS_FILE") # the line where the user details are stored, 0 specifies print no lines above/below, just the line
+            local USER_LINE_FOR_ARRAY=$(echo "$USER_LINE" | tr ',' ' ') # REPLACES ','' WITH SPACE
+            echo "$USER_LINE_FOR_ARRAY"
+
+            USERDETAILS=($USER_LINE_FOR_ARRAY)
+
+            FIRSTNAME=${USERDETAILS[0]}
+            USERNAME=${USERDETAILS[1]}
+            PASS=${USERDETAILS[2]}
+            LEVEL=${USERDETAILS[3]}
+            CLASS=${USERDETAILS[4]}
+            QUIZTYPE=${USERDETAILS[5]}
+            TABLENUM=${USERDETAILS[6]}
+            MAXNUM=${USERDETAILS[7]}
+            DOJOPOINTS=${USERDETAILS[8]}
+            TEACHER=${USERDETAILS[9]}
+
+            echo "Logged in as: $LOGGED_IN_USER"
+
+
+            teacher_menu
+
+        else
+            echo "Wrong password. Please try again."
+            teacher_login
+        fi
+    else
+        echo "User does not exist."
+        teacher_login
+    fi
+
+}
+
+view_student_quiz_results()
+{
+    declare -a list_of_students
+
+    # Read users.csv line by line and put students usernames into the list
+    while read LINE
+    do
+        if [[ "$LINE" =~ "$USERNAME" ]]; then # teachers username
+            FIRST_CELL=$(echo "$LINE" | cut -d',' -f1)
+            if [[ "$FIRST_CELL" == "$FIRSTNAME" ]]; then
+                echo "Skipping teacher line"
+            else
+                STUDENT_NAME=$(echo "$LINE" | cut -d',' -f1)
+                echo "- Student: $STUDENT_NAME"
+                list_of_students+=("$STUDENT_NAME")
+            fi
+        fi
+
+    done < $USERS_FILE
+
+    echo "---------------------"
+    echo "--- YOUR STUDENTS ---"
+    echo "----------------------"
+    for((i=0;i<${#list_of_students[@]};i++))
+    do
+        echo "$i: ${list_of_students[$i]}"
+    done
+     
+}
+
+#manage_users()
+#{
+#
+#}
+
+#view_student_stats()
+#{
+
+#}
+
+teacher_menu()
+{
+    echo "----------------"
+    echo "Teacher Menu"
+    echo "----------------"
+    echo "1. View Student Quiz Attempts"
+    echo "2. View Student Statistics"
+    echo "3. Manage Users"
+    echo "4. Exit Program"
+    echo "5. Log out"
+    echo "----------------"
+    read MENU_CHOICE
+
+    case $MENU_CHOICE in 
+        1)
+            view_student_quiz_results
+            ;;
+        2)
+            view_student_stats
+            ;;
+        3)
+            manage_users
+            ;;
+        4)
+            echo "Exiting program...Bye bye"
+            exit 0 # exiting program 
+            ;;
+        5)
+            logout
+            ;;
+        *)
+            echo "Invalid student option. Please enter an option "
+            echo ""
+            ;;
+    esac
+
+
 }
 
 student_menu()
@@ -395,5 +532,4 @@ run_quiz()
 }
 
 menu # run menu at startup
-
 
