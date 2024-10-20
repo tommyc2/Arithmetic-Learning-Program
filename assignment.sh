@@ -184,6 +184,13 @@ teacher_login()
 
 view_student_quiz_results()
 {
+
+    if [[ ! -d quiz_results ]]; then
+        echo "No available Quiz Results for any student"
+        sleep 2
+        teacher_menu
+    fi
+    
     echo "-------------------------------------"
     echo "---- SELECT A STUDENT's RESULTS -----"
     echo "-------------------------------------"
@@ -198,6 +205,7 @@ view_student_quiz_results()
         fi
     done
 
+    echo "Choose a number (0-$number_of_students)"
     read -p "--->   " NUM
 
     if [[ $NUM -ge $number_of_students || $NUM -lt 0 ]]
@@ -206,9 +214,41 @@ view_student_quiz_results()
         view_student_quiz_results
     fi
 
+    # Check quiz_results directory and see if student has results
 
+    local CHOSEN_STUDENT_NAME=${teachers_list_of_students[$NUM]}
+    echo ""
+    echo "You chose: $CHOSEN_STUDENT_NAME"
+    echo ""
 
-    # todo: check quiz_results directory and see if student has results
+    if ls quiz_results | grep -q "$CHOSEN_STUDENT_NAME"
+    then
+        local ATTEMPTS_OUTPUT=$(ls quiz_results | grep "$CHOSEN_STUDENT_NAME" | cat)
+        local ATTEMPTS_ARRAY=()
+
+        while read line
+        do
+            ATTEMPTS_ARRAY+=("$line")
+        done <<< "$ATTEMPTS_OUTPUT"
+
+        echo "=========================================="
+        echo "Number of attempts: ${#ATTEMPTS_ARRAY[@]}"
+        echo "=========================================="
+        for((i=0;i<${#ATTEMPTS_ARRAY[@]};i++))
+        do
+            echo "($i): ${ATTEMPTS_ARRAY[$i]}"
+        done
+
+        read -p "Enter a number:    " N
+        
+        # View contents of attempt file
+        cat "quiz_results/${ATTEMPTS_ARRAY[$N]}"
+
+    else
+        echo "No attempts for this student"
+        sleep 2
+        view_student_quiz_results
+    fi
 
 }
 
@@ -467,7 +507,7 @@ run_quiz()
     fi
 
 
-    local file=$USER"-"$(date "+%Y%m%d%H%M%S")"-"$(((RANDOM%999+1)))".txt" # Using text file instead of csv for readability
+    local file=$FIRSTNAME"-"$(date "+%Y%m%d%H%M%S")"-"$(((RANDOM%999+1)))".txt" # Using text file instead of csv for readability
     local LIVES=3 # 3 lives at the start of every quiz
     local counter=0 # for tracking number of consecutive wrong answers, resets after quiz
 
@@ -523,14 +563,14 @@ run_quiz()
             counter=0 # reseting the counter as answer is correct
 
             # Write results to a file (txt)
-            echo "$NUMBER $op $random_num = $USER_ANSWER --> ANS: $ans (Correct)" >> quiz_results/$file
+            echo "$NUMBER $op $random_num = $ans --> User answer: $USER_ANSWER (Correct)" >> quiz_results/$file
 
         else
             echo "Incorrect."
 
             counter=$(($counter+1))
 
-            echo "$NUMBER $op $random_num = $USER_ANSWER --> ANS: $ans (Wrong)" >> quiz_results/$file
+            echo "$NUMBER $op $random_num = $ans --> User answer: $USER_ANSWER (Wrong)" >> quiz_results/$file
 
             if [ $counter -eq 2 ] || [ $counter -eq 4 ] || [ $counter -eq 6 ]
             then
