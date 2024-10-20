@@ -12,7 +12,8 @@
 NUM_QUESTIONS=20 # number of questions assigned to student
 USERS_FILE="users.csv" # list of users stored locally
 declare LOGGED_IN_USER # Username of user logged in
-declare -a USERDETAILS
+declare -a USERDETAILS # can be teacher or student
+declare -a teachers_list_of_students # load in teacher's students
 
 menu()
 {
@@ -164,6 +165,7 @@ teacher_login()
             DOJOPOINTS=${USERDETAILS[8]}
             TEACHER=${USERDETAILS[9]}
 
+            load_teachers_students # load students into array
             echo "Logged in as: $LOGGED_IN_USER"
 
 
@@ -182,32 +184,52 @@ teacher_login()
 
 view_student_quiz_results()
 {
-    declare -a list_of_students
+    echo "-------------------------------------"
+    echo "---- SELECT A STUDENT's RESULTS -----"
+    echo "-------------------------------------"
 
+    local number_of_students=${#teachers_list_of_students[@]}
+
+    for((i=0;i<number_of_students;i++))
+    do
+        echo "$i. ${teachers_list_of_students[$i]}"
+        if [[ $i -eq $number_of_students ]]; then
+            echo "-----------------------"
+        fi
+    done
+
+    read -p "--->   " NUM
+
+    if [[ $NUM -ge $number_of_students || $NUM -lt 0 ]]
+    then
+        echo "Please enter a number between 0-$(($number_of_students-1))"
+        view_student_quiz_results
+    fi
+
+
+
+    # todo: check quiz_results directory and see if student has results
+
+}
+
+load_teachers_students()
+{
     # Read users.csv line by line and put students usernames into the list
     while read LINE
     do
         if [[ "$LINE" =~ "$USERNAME" ]]; then # teachers username
             FIRST_CELL=$(echo "$LINE" | cut -d',' -f1)
-            if [[ "$FIRST_CELL" == "$FIRSTNAME" ]]; then
-                echo "Skipping teacher line"
-            else
+            if [[ "$FIRST_CELL" != "$FIRSTNAME" ]]
+            then
                 STUDENT_NAME=$(echo "$LINE" | cut -d',' -f1)
-                echo "- Student: $STUDENT_NAME"
-                list_of_students+=("$STUDENT_NAME")
+                teachers_list_of_students+=("$STUDENT_NAME")
             fi
         fi
 
     done < $USERS_FILE
-
-    echo "---------------------"
-    echo "--- YOUR STUDENTS ---"
-    echo "----------------------"
-    for((i=0;i<${#list_of_students[@]};i++))
-    do
-        echo "$i: ${list_of_students[$i]}"
-    done
      
+
+    echo "Loaded students....."
 }
 
 #manage_users()
@@ -437,7 +459,15 @@ learn_tables()
 
 run_quiz()
 {
-    local file=$USER"-"$(date "+%Y%m%d%H%M%S")"-"$(((RANDOM%999+1)))".csv"
+    # Make quiz results directory if not present
+    if [[ -d quiz_results ]]; then
+        echo ""
+    else
+        mkdir quiz_results
+    fi
+
+
+    local file=$USER"-"$(date "+%Y%m%d%H%M%S")"-"$(((RANDOM%999+1)))".txt" # Using text file instead of csv for readability
     local LIVES=3 # 3 lives at the start of every quiz
     local counter=0 # for tracking number of consecutive wrong answers, resets after quiz
 
@@ -480,7 +510,6 @@ run_quiz()
         echo "Question ($((i+1))): What is $NUMBER $op $random_num ?: "
         read USER_ANSWER
 
-        # To complete properly, need clarification on what 'exit quiz' refers to...
         if [ $USER_ANSWER -eq 999 ]
         then
             echo "Exiting quiz..."
@@ -493,16 +522,15 @@ run_quiz()
 
             counter=0 # reseting the counter as answer is correct
 
-            # Write results to a file (CSV)
-            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,1" >> $file
+            # Write results to a file (txt)
+            echo "$NUMBER $op $random_num = $USER_ANSWER --> ANS: $ans (Correct)" >> quiz_results/$file
 
         else
             echo "Incorrect."
 
             counter=$(($counter+1))
-            echo "Counter value: $counter"
 
-            echo "$NUMBER,$op,$random_num,$USER_ANSWER,$ans,0" >> $file
+            echo "$NUMBER $op $random_num = $USER_ANSWER --> ANS: $ans (Wrong)" >> quiz_results/$file
 
             if [ $counter -eq 2 ] || [ $counter -eq 4 ] || [ $counter -eq 6 ]
             then
