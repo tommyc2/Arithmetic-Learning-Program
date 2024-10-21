@@ -239,15 +239,54 @@ view_student_quiz_results()
             echo "($i): ${ATTEMPTS_ARRAY[$i]}"
         done
 
+        echo ""
         read -p "Enter a number:    " N
         
         # View contents of attempt file
+        echo ""
+        echo "--------------------------------"
+        echo "Name: $CHOSEN_STUDENT_NAME"
+        echo "Attempt Number: $N"
+        echo "---------------------------------"
         cat "quiz_results/${ATTEMPTS_ARRAY[$N]}"
+        echo ""
+
+        local WRONG=0
+        local TOTAL=0
+
+        while read LINE || [ -n "$LINE" ] # StackOverflow: https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line
+        do
+            TOTAL=$(($TOTAL+1))
+
+            if echo "$LINE" | grep -q "Wrong"; then
+                WRONG=$(($WRONG+1))
+            fi
+
+        done < quiz_results/${ATTEMPTS_ARRAY[$N]}
+
+        echo "---------------------------------"
+        echo "Score: $(($TOTAL-$WRONG))/$TOTAL "
+        echo "-----------------------------------"
+
+        read -p "Return to main menu? (y/n):" CHOICE
+
+        if [[ "$CHOICE" == "y" || "$CHOICE" == "Y" ]]; then
+            teacher_menu
+        else
+            view_student_quiz_results
+        fi
 
     else
-        echo "No attempts for this student"
+        echo "No attempts for this student found"
         sleep 2
-        view_student_quiz_results
+
+        read -p "Return to main menu? (y/n):" CHOICE
+
+        if [[ "$CHOICE" == "y" || "$CHOICE" == "Y" ]]; then
+            teacher_menu
+        else
+            view_student_quiz_results
+        fi
     fi
 
 }
@@ -290,8 +329,8 @@ teacher_menu()
     echo "1. View Student Quiz Attempts"
     echo "2. View Student Statistics"
     echo "3. Manage Users"
-    echo "4. Exit Program"
-    echo "5. Log out"
+    echo "4. Log Out"
+    echo "5. Exit"
     echo "----------------"
     read MENU_CHOICE
 
@@ -306,11 +345,11 @@ teacher_menu()
             manage_users
             ;;
         4)
-            echo "Exiting program...Bye bye"
-            exit 0 # exiting program 
+            logout
             ;;
         5)
-            logout
+            echo "Exiting program...Bye bye"
+            exit 0 # exiting program 
             ;;
         *)
             echo "Invalid student option. Please enter an option "
@@ -358,7 +397,10 @@ student_menu()
 
 logout()
 {
-    unset $LOGGED_IN_USER
+    unset LOGGED_IN_USER
+    unset USERDETAILS
+    unset teachers_list_of_students
+
     menu
 }
 
