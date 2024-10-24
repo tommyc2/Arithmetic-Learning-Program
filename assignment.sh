@@ -16,6 +16,7 @@ declare -a USERDETAILS # can be teacher or student
 declare -a teachers_list_of_students # load in teacher's students
 maths_facts_file="mathsfacts.txt"
 
+
 menu()
 {
 
@@ -97,7 +98,16 @@ student_login()
             DOJOPOINTS=${USERDETAILS[8]}
             TEACHER=${USERDETAILS[9]}
 
-            echo "Logged in as: $LOGGED_IN_USER"
+            echo ""
+            echo "-------------------"
+            echo "Welcome $FIRSTNAME!"
+            echo "-------------------"
+            echo "$date"
+            echo "Your class: $CLASS"
+            echo "DojoPoints: $DOJOPOINTS"
+            echo "Your teacher: $TEACHER"
+            echo "-------------------"
+            echo ""
 
             echo ""
             shuf -n 1 $maths_facts_file
@@ -137,7 +147,7 @@ teacher_login()
         read -p "Enter your password: " PASSWORD
         if [[ ! $PASSWORD =~ ^[[:alnum:]]+$ ]]
         then
-            echo "ERROR: Username must contain letters and numbers only"
+            echo "ERROR: Password must contain letters and numbers only"
         fi
     done
 
@@ -155,7 +165,6 @@ teacher_login()
 
             local USER_LINE=$(grep -C 0 "$USERNAME,$ENCRYPTED_PASSWORD" "$USERS_FILE") # the line where the user details are stored, 0 specifies print no lines above/below, just the line
             local USER_LINE_FOR_ARRAY=$(echo "$USER_LINE" | tr ',' ' ') # REPLACES ','' WITH SPACE
-            echo "$USER_LINE_FOR_ARRAY"
 
             USERDETAILS=($USER_LINE_FOR_ARRAY)
 
@@ -169,6 +178,13 @@ teacher_login()
             MAXNUM=${USERDETAILS[7]}
             DOJOPOINTS=${USERDETAILS[8]}
             TEACHER=${USERDETAILS[9]}
+
+            echo ""
+            echo "-------------------"
+            echo "Welcome $FIRSTNAME!"
+            echo "$date"
+            echo "-------------------"
+            echo ""
 
             load_teachers_students # load students into array
             echo "Logged in as: $LOGGED_IN_USER"
@@ -275,7 +291,7 @@ view_student_quiz_results()
         done < quiz_results/${ATTEMPTS_ARRAY[$N]}
 
         echo "---------------------------------"
-        echo "Score: $(($TOTAL-$WRONG))/$TOTAL "
+        echo "Score: $(($TOTAL-$WRONG)) / $TOTAL "
         echo "-----------------------------------"
 
         read -p "Return to main menu? (y/n):" CHOICE
@@ -350,14 +366,65 @@ manage_users()
     local CHOSEN_STUDENT_NAME=${teachers_list_of_students[$NUM]}
     echo ""
     echo "You chose: $CHOSEN_STUDENT_NAME. What do you want to do with this student?"
-    echo "1. Update student details"
-    echo "2. Delete student"
+    echo "1. Delete student"
+    echo "2. View student stats"
+    echo "3. Go Back"
+    read -p "-->   " OP
+    echo ""
+
+    if [[ $OP -eq 1 ]]; then
+        echo "delete"
+    elif [[ $OP -eq 2 ]]; then
+        view_student_stats $OP
+    elif [[ $OP -eq 3 ]]; then
+        manage_users
+    else
+        echo "You must enter a number between 1-3"
+        echo "Going back to Manage Users menu..."
+        sleep 1
+        manage_users
+    fi
+    
+    
+
+
 }
 
-#view_student_stats()
-#{
+view_student_stats()
+{
+    local student_attempts_array=($(ls quiz_results | grep "$CHOSEN_STUDENT_NAME"))
 
-#}
+    local SCORE_TALLY=0
+
+    for((i=0;i<${#student_attempts_array[@]};i++))
+    do
+        while read LINE || [ -n "$LINE" ] # StackOverflow: https://stackoverflow.com/questions/12916352/shell-script-read-missing-last-line
+        do
+            if echo "$LINE" | grep -q "Correct"; then
+                SCORE_TALLY=$(($SCORE_TALLY+1))
+            fi
+        done < quiz_results/${student_attempts_array[$i]}
+    done
+
+    local AVG_SCORE=$(($SCORE_TALLY/${#student_attempts_array[@]}))
+
+    echo ""
+    echo "Student Name: $CHOSEN_STUDENT_NAME"
+    echo "Avg. Score: $AVG_SCORE/20"
+    echo ""
+
+    read -p "Return to main menu? (y/n):" CHOICE
+
+    if [[ "$CHOICE" == "y" || "$CHOICE" == "Y" ]]; then
+        echo ""
+        teacher_menu
+    else
+        manage_users
+    fi
+
+    manage_users
+
+}
 
 teacher_menu()
 {
@@ -365,10 +432,9 @@ teacher_menu()
     echo "Teacher Menu"
     echo "----------------"
     echo "1. View Student Quiz Attempts"
-    echo "2. View Student Statistics"
-    echo "3. Manage Users"
-    echo "4. Log Out"
-    echo "5. Exit"
+    echo "2. Manage Users & View Student Stats"
+    echo "3. Log Out"
+    echo "4. Exit"
     echo "----------------"
     read MENU_CHOICE
 
@@ -377,15 +443,12 @@ teacher_menu()
             view_student_quiz_results
             ;;
         2)
-            view_student_stats
-            ;;
-        3)
             manage_users
             ;;
-        4)
+        3)
             logout
             ;;
-        5)
+        4)
             echo "Exiting program...Bye bye"
             exit 0 # exiting program 
             ;;
@@ -599,7 +662,7 @@ run_quiz()
     echo "Enter a number -->"
     read NUMBER
 
-    for ((i=0; i<20; i++)) # ONE QUESTION FOR EACH ARITHMETIC OPERATION FOR NOW.....
+    for ((i=0; i<$NUM_QUESTIONS; i++)) # ONE QUESTION FOR EACH ARITHMETIC OPERATION FOR NOW.....
     # can increase this number from 5 to 20 once function is finished
     do
         random_num=$(($RANDOM % 12))
