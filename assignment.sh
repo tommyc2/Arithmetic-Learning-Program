@@ -14,6 +14,7 @@ USERS_FILE="users.csv" # list of users stored locally
 declare LOGGED_IN_USER # Username of user logged in
 declare -a USERDETAILS # can be teacher or student
 declare -a teachers_list_of_students # load in teacher's students
+maths_facts_file="mathsfacts.txt"
 
 menu()
 {
@@ -82,7 +83,6 @@ student_login()
 
             local USER_LINE=$(grep -C 0 "$USERNAME,$ENCRYPTED_PASSWORD" "$USERS_FILE") # the line where the user details are stored, 0 specifies print no lines above/below, just the line
             local USER_LINE_FOR_ARRAY=$(echo "$USER_LINE" | tr ',' ' ') # REPLACES ','' WITH SPACE
-            echo "$USER_LINE_FOR_ARRAY"
 
             USERDETAILS=($USER_LINE_FOR_ARRAY)
 
@@ -99,6 +99,11 @@ student_login()
 
             echo "Logged in as: $LOGGED_IN_USER"
 
+            echo ""
+            shuf -n 1 $maths_facts_file
+            echo ""
+
+            sleep 1
 
             student_menu
 
@@ -168,6 +173,11 @@ teacher_login()
             load_teachers_students # load students into array
             echo "Logged in as: $LOGGED_IN_USER"
 
+            echo ""
+            shuf -n 1 $maths_facts_file
+            echo ""
+
+            sleep 1
 
             teacher_menu
 
@@ -311,10 +321,38 @@ load_teachers_students()
     echo "Loaded students....."
 }
 
-#manage_users()
-#{
-#
-#}
+manage_users()
+{
+    echo "-------------------------------------"
+    echo "--------  MANAGE USERS  -------------"
+    echo "-------------------------------------"
+
+    local number_of_students=${#teachers_list_of_students[@]}
+
+    for((i=0;i<number_of_students;i++))
+    do
+        echo "$i. ${teachers_list_of_students[$i]}"
+        if [[ $i -eq $number_of_students ]]; then
+            echo "-----------------------"
+        fi
+    done
+
+    echo ""
+    echo "Choose a number (0-$number_of_students)"
+    read -p "--->   " NUM
+
+    if [[ $NUM -ge $number_of_students || $NUM -lt 0 ]]
+    then
+        echo "Please enter a number between 0-$(($number_of_students-1))"
+        manage_users
+    fi
+
+    local CHOSEN_STUDENT_NAME=${teachers_list_of_students[$NUM]}
+    echo ""
+    echo "You chose: $CHOSEN_STUDENT_NAME. What do you want to do with this student?"
+    echo "1. Update student details"
+    echo "2. Delete student"
+}
 
 #view_student_stats()
 #{
