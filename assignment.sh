@@ -128,6 +128,34 @@ student_login()
 
 }
 
+delete_student()
+{
+    if sed -i "/$1/d" $USERS_FILE; then
+        for((i=0;i<${#teachers_list_of_students[@]};i++))
+        do
+            if [[ ${teachers_list_of_students[$i]} == "$1" ]]; then
+                echo ""
+                echo "Found student"
+                echo ""
+
+                load_teachers_students
+
+                echo ""
+                echo "Successfully deleted student: "$1"!"
+                echo ""
+
+                sleep 2
+
+                manage_users
+            fi
+        done
+    else
+        echo "Unsuccessful. Please try again"
+        sleep 2
+        manage_users
+    fi
+}
+
 teacher_login()
 {
     local USERNAME
@@ -319,8 +347,10 @@ view_student_quiz_results()
 
 load_teachers_students()
 {
+    unset teachers_list_of_students
+
     # Read users.csv line by line and put students usernames into the list
-    while read LINE
+    while read LINE || [ -n "$LINE" ]
     do
         if [[ "$LINE" =~ "$USERNAME" ]]; then # teachers username
             FIRST_CELL=$(echo "$LINE" | cut -d',' -f1)
@@ -348,14 +378,17 @@ manage_users()
     for((i=0;i<number_of_students;i++))
     do
         echo "$i. ${teachers_list_of_students[$i]}"
-        if [[ $i -eq $number_of_students ]]; then
-            echo "-----------------------"
-        fi
     done
 
+    echo "x. Return to menu"
+
     echo ""
-    echo "Choose a number (0-$number_of_students)"
+    echo "Choose a number (0-$(($number_of_students-1))) or enter 'x' to return to teacher menu"
     read -p "--->   " NUM
+
+    if [[ "$NUM" == "x" || "$NUM" == "X" ]]; then
+        teacher_menu
+    fi
 
     if [[ $NUM -ge $number_of_students || $NUM -lt 0 ]]
     then
@@ -369,11 +402,12 @@ manage_users()
     echo "1. Delete student"
     echo "2. View student stats"
     echo "3. Go Back"
+    echo ""
     read -p "-->   " OP
     echo ""
 
     if [[ $OP -eq 1 ]]; then
-        echo "delete"
+        delete_student "$CHOSEN_STUDENT_NAME"
     elif [[ $OP -eq 2 ]]; then
         view_student_stats $OP
     elif [[ $OP -eq 3 ]]; then
