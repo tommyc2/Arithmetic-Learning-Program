@@ -12,5 +12,6 @@ To run this program, clone the repo to your local machine using the following co
 
 ```bash
 git clone https://github.com/tommyc2/Arithmetic-Learning-Program.git
+cd Arithmetic-Learning-Program
 chmod +x assignment.sh
 ```
