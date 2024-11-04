@@ -1,0 +1,6 @@
+5 - 1 = 4 --> User answer: 6 (Wrong)
+5 + 10 = 15 --> User answer: 6 (Wrong)
+5 + 6 = 11 --> User answer: 6 (Wrong)
+5 + 0 = 5 --> User answer: 6 (Wrong)
+5 + 3 = 8 --> User answer: 6 (Wrong)
+5 x 1 = 5 --> User answer: 6 (Wrong)

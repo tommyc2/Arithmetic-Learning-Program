@@ -1,0 +1,6 @@
+5 - 2 = 3 --> User answer: 5 (Wrong)
+5 x 5 = 25 --> User answer: 5 (Wrong)
+5 - 3 = 2 --> User answer: 5 (Wrong)
+5 x 0 = 0 --> User answer: 5 (Wrong)
+5 + 5 = 10 --> User answer: 5 (Wrong)
+5 + 9 = 14 --> User answer: 5 (Wrong)

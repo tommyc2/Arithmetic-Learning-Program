@@ -16,11 +16,18 @@ declare -a USERDETAILS # can be teacher or student
 declare -a teachers_list_of_students # load in teacher's students
 maths_facts_file="mathsfacts.txt"
 
+# Colours
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+PURPLE="\033[0;35m"
+BLUE="\033[0;34m"
+RESET="\033[0m"
+
 
 menu()
 {
 
-    echo """
+    echo -e """${GREEN}
     ----------------
     Login
     ---------------
@@ -28,7 +35,7 @@ menu()
     2. Student Login
     3. Quit
     ---------------
-    -->  """
+    -->  ${RESET}"""
     read OPTION
 
     if [ $OPTION -eq 1 ] # Login as teacher
@@ -98,7 +105,7 @@ student_login()
             DOJOPOINTS=${USERDETAILS[8]}
             TEACHER=${USERDETAILS[9]}
 
-            echo ""
+            echo -e "${YELLOW}"
             echo "-------------------"
             echo "Welcome $FIRSTNAME!"
             echo "-------------------"
@@ -107,7 +114,7 @@ student_login()
             echo "DojoPoints: $DOJOPOINTS"
             echo "Your teacher: $TEACHER"
             echo "-------------------"
-            echo ""
+            echo -e "${RESET}"
 
             echo ""
             shuf -n 1 $maths_facts_file
@@ -207,12 +214,12 @@ teacher_login()
             DOJOPOINTS=${USERDETAILS[8]}
             TEACHER=${USERDETAILS[9]}
 
-            echo ""
+            echo -e "${YELLOW}"
             echo "-------------------"
-            echo "Welcome $FIRSTNAME!"
+            echo -e "Welcome ${RESET} $FIRSTNAME! ${YELLOW}"
             echo "$date"
             echo "-------------------"
-            echo ""
+            echo -e "${RESET}"
 
             load_teachers_students # load students into array
             echo "Logged in as: $LOGGED_IN_USER"
@@ -285,9 +292,9 @@ view_student_quiz_results()
             ATTEMPTS_ARRAY+=("$line")
         done <<< "$ATTEMPTS_OUTPUT"
 
-        echo "=========================================="
+        echo -e "${YELLOW}=========================================="
         echo "Number of attempts: ${#ATTEMPTS_ARRAY[@]}"
-        echo "=========================================="
+        echo -e "==========================================${RESET}"
         for((i=0;i<${#ATTEMPTS_ARRAY[@]};i++))
         do
             echo "($i): ${ATTEMPTS_ARRAY[$i]}"
@@ -297,13 +304,13 @@ view_student_quiz_results()
         read -p "Enter a number:    " N
         
         # View contents of attempt file
-        echo ""
+        echo -e "${YELLOW}"
         echo "--------------------------------"
         echo "Name: $CHOSEN_STUDENT_NAME"
         echo "Attempt Number: $N"
         echo "---------------------------------"
         cat "quiz_results/${ATTEMPTS_ARRAY[$N]}"
-        echo ""
+        echo -e "${RESET}"
 
         local WRONG=0
         local TOTAL=0
@@ -318,9 +325,9 @@ view_student_quiz_results()
 
         done < quiz_results/${ATTEMPTS_ARRAY[$N]}
 
-        echo "---------------------------------"
-        echo "Score: $(($TOTAL-$WRONG)) / $TOTAL "
-        echo "-----------------------------------"
+        echo -e "${YELLOW}---------------------------------"
+        echo -e "${RESET}Score: $(($TOTAL-$WRONG)) / $TOTAL ${YELLOW}"
+        echo -e "-----------------------------------${RESET}"
 
         read -p "Return to main menu? (y/n):" CHOICE
 
@@ -369,9 +376,9 @@ load_teachers_students()
 
 manage_users()
 {
-    echo "-------------------------------------"
+    echo -e "${YELLOW}-------------------------------------"
     echo "--------  MANAGE USERS  -------------"
-    echo "-------------------------------------"
+    echo -e "------------------------------------- ${RESET}"
 
     local number_of_students=${#teachers_list_of_students[@]}
 
@@ -462,14 +469,14 @@ view_student_stats()
 
 teacher_menu()
 {
-    echo "----------------"
+    echo -e "${PURPLE}----------------"
     echo "Teacher Menu"
     echo "----------------"
     echo "1. View Student Quiz Attempts"
     echo "2. Manage Users & View Student Stats"
     echo "3. Log Out"
     echo "4. Exit"
-    echo "----------------"
+    echo -e "----------------${RESET}"
     read MENU_CHOICE
 
     case $MENU_CHOICE in 
@@ -497,7 +504,7 @@ teacher_menu()
 
 student_menu()
 {
-    echo "----------------"
+    echo -e "${GREEN}----------------"
     echo "Student Menu"
     echo "----------------"
 
@@ -505,8 +512,8 @@ student_menu()
     echo "1. To Learn Tables"
     echo "2. To Take Quiz"
     echo "3. Log Out"
-    echo "4 Quit the program"
-    echo "------------------"
+    echo -e "${BLUE}4 Quit the program"
+    echo -e "------------------${RESET}"
     read MENU_CHOICE
 
     case $MENU_CHOICE in 
@@ -673,6 +680,25 @@ learn_tables()
 
 }
 
+save_dojopoints()
+{
+    local correct_answers=$1
+
+    if [[ $correct_answers -ge 0 && $correct_answers -le 9 ]]; then
+        DOJOPOINTS=$(($DOJOPOINTS+0))
+    elif [[ $correct_answers -ge 10 && $correct_answers -le 12 ]]; then
+        DOJOPOINTS=$(($DOJOPOINTS+1))
+    elif [[ $correct_answers -ge 13 && $correct_answers -le 17 ]]; then
+        DOJOPOINTS=$(($DOJOPOINTS+2))
+    elif [[ $correct_answers -ge 18 && $correct_answers -le 20 ]]; then
+        DOJOPOINTS=$(($DOJOPOINTS+3))
+    else
+        echo "Dojopoints were not added. An error has occured"
+    fi
+
+    echo "Your current Dojopoints: $DOJOPOINTS"
+}
+
 
 run_quiz()
 {
@@ -689,15 +715,17 @@ run_quiz()
     local counter=0 # for tracking number of consecutive wrong answers, resets after quiz
 
     echo ""
-    echo "----------------"
-    echo "TAKE QUIZ!!!"
+    echo "-----------------"
+    echo "| TAKE QUIZ!!!  |"
     echo "-----------------"
     echo ""
     echo "Enter a number -->"
     read NUMBER
 
-    for ((i=0; i<$NUM_QUESTIONS; i++)) # ONE QUESTION FOR EACH ARITHMETIC OPERATION FOR NOW.....
-    # can increase this number from 5 to 20 once function is finished
+    # Tracking number of correct answers for dojopoints
+    local NUMBER_OF_CORRECT_ANSWERS=0
+
+    for ((i=0; i<$NUM_QUESTIONS; i++)) # Number of questions = 20 (depends on student)
     do
         random_num=$(($RANDOM % 12))
         ans=0
@@ -730,12 +758,16 @@ run_quiz()
         if [ $USER_ANSWER -eq 999 ]
         then
             echo "Exiting quiz..."
+            echo ""
             menu
         fi
 
         if [ $USER_ANSWER -eq $ans ]
         then
             echo "Correct answer!"
+            echo ""
+
+            NUMBER_OF_CORRECT_ANSWERS=$(($NUMBER_OF_CORRECT_ANSWERS+1))
 
             counter=0 # reseting the counter as answer is correct
 
@@ -755,6 +787,10 @@ run_quiz()
 
                 if [ "$LIVES" -eq 0 ]
                 then
+                    echo "Calculating dojopoints...."
+
+                    save_dojopoints $NUMBER_OF_CORRECT_ANSWERS
+
                     echo "You have no lives left. Quiz is now over."
                     read -p "Do you want to start a new quiz? (y/n):  " RESPONSE
 
@@ -762,8 +798,11 @@ run_quiz()
                     then
                         run_quiz
                     else
-                        # back to menu code....
-                        exit 0
+                        echo ""
+                        echo ""
+                        echo "Returning to student menu...."
+                        echo ""
+                        student_menu
                     fi
                 fi
 
@@ -774,6 +813,12 @@ run_quiz()
     done
 
     echo "Quiz finished!"
+
+    echo "Saving dojopoints to file....."
+
+    save_dojopoints $NUMBER_OF_CORRECT_ANSWERS
+
+    student_menu
 }
 
 menu # run menu at startup
