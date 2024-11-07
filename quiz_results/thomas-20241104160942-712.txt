@@ -1,6 +1,0 @@
-g x 8 = 0 --> User answer: g (Wrong)
-g x 9 = 0 --> User answer: g (Wrong)
-g - 3 = -3 --> User answer: g (Wrong)
-g + 1 = 1 --> User answer: g (Wrong)
-g x 8 = 0 --> User answer: g (Wrong)
-g + 8 = 8 --> User answer: g (Wrong)

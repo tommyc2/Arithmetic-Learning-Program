@@ -83,9 +83,6 @@ student_login()
     then
         if grep -q "$USERNAME,$ENCRYPTED_PASSWORD," "$USERS_FILE"
         then
-            echo "-----------------"
-            echo "Hello $USERNAME!"
-            echo "-----------------"
 
             LOGGED_IN_USER=$USERNAME
 
@@ -192,9 +189,6 @@ teacher_login()
     then
         if grep -q "$USERNAME,$ENCRYPTED_PASSWORD," "$USERS_FILE"
         then
-            echo "-----------------"
-            echo "Hello $USERNAME!"
-            echo "-----------------"
 
             LOGGED_IN_USER=$USERNAME
 
@@ -214,11 +208,12 @@ teacher_login()
             DOJOPOINTS=${USERDETAILS[8]}
             TEACHER=${USERDETAILS[9]}
 
+            echo ""
             echo -e "${YELLOW}"
-            echo "-------------------"
-            echo -e "Welcome ${RESET} $FIRSTNAME! ${YELLOW}"
-            echo "$date"
-            echo "-------------------"
+            echo "-----------------------"
+            echo -e "Welcome $FIRSTNAME!"
+            echo $(date)
+            echo "-----------------------"
             echo -e "${RESET}"
 
             load_teachers_students # load students into array
@@ -252,9 +247,9 @@ view_student_quiz_results()
         teacher_menu
     fi
     
-    echo "-------------------------------------"
+    echo -e "${YELLOW}-------------------------------------"
     echo "---- SELECT A STUDENT's RESULTS -----"
-    echo "-------------------------------------"
+    echo -e "-------------------------------------${RESET}"
 
     local number_of_students=${#teachers_list_of_students[@]}
 
@@ -266,7 +261,7 @@ view_student_quiz_results()
         fi
     done
 
-    echo "Choose a number (0-$number_of_students)"
+    echo "Choose a number (0-$(($number_of_students-1)))"
     read -p "--->   " NUM
 
     if [[ $NUM -ge $number_of_students || $NUM -lt 0 ]]
@@ -447,12 +442,16 @@ view_student_stats()
         done < quiz_results/${student_attempts_array[$i]}
     done
 
-    local AVG_SCORE=$(($SCORE_TALLY/${#student_attempts_array[@]}))
+    if [[ ${#student_attempts_array[@]} -eq 0 ]]; then
+        echo "No attempts for this student. Cannot obtain stats as a result"
+    else
+        local AVG_SCORE=$(($SCORE_TALLY/${#student_attempts_array[@]}))
 
-    echo ""
-    echo "Student Name: $CHOSEN_STUDENT_NAME"
-    echo "Avg. Score: $AVG_SCORE/20"
-    echo ""
+        echo ""
+        echo "Student Name: $CHOSEN_STUDENT_NAME"
+        echo "Avg. Score: $AVG_SCORE/20"
+        echo ""
+    fi
 
     read -p "Return to main menu? (y/n):" CHOICE
 
@@ -569,7 +568,7 @@ display_learn_tables_menu()
 
 learn_tables()
 { 
-    until ["$1" -lt 1 -a "$1" -gt 4 ]
+    until [ "$1" -lt 1 -a "$1" -gt 4 ]
     do
 	    case "$1" in
 		    1)
@@ -581,7 +580,7 @@ learn_tables()
 			    
 			    for ((i=0; i<=12; i++))
 			    do
-				    until [ $ANSWER -eq $(($NUM+i)) ]
+				    until [[ $ANSWER -eq $(($NUM+i)) ]]
 				    do
 					    echo "What is $NUM + $i?:	"
 				    	    read ANSWER
@@ -605,7 +604,7 @@ learn_tables()
 
                             for ((i=0; i<=12; i++))
                             do
-				    until [ $ANSWER -eq $(($NUM-i)) ]
+				    until [[ $ANSWER -eq $(($NUM-i)) ]]
                                     do
                                             echo "What is $NUM - $i?:   "
                                             read ANSWER
@@ -630,7 +629,7 @@ learn_tables()
 
                             for ((i=0; i<=12; i++))
                             do
-				    until [ $ANSWER -eq $(($NUM*i)) ]
+				    until [[ $ANSWER -eq $(($NUM*i)) ]]
                                     do
                                             echo "What is $NUM x $i?:   "
                                             read ANSWER
@@ -653,9 +652,9 @@ learn_tables()
 			    echo "Enter the number for times table: "
                             read NUM
 
-                            for ((i=0; i<=12; i++))
+                            for ((i=1; i<=12; i++))
                             do
-				    until [ $ANSWER -eq $(($NUM / $i)) ]
+				    until [[ $ANSWER -eq $(($NUM / $i)) ]]
                                     do
                                             echo "What is $NUM / $i?:   "
                                             read ANSWER

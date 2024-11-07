@@ -1,4 +1,0 @@
-4 + 2 = 6 --> User answer: 6 (Correct)
-4 - 4 = 0 --> User answer: 0 (Correct)
-4 + 3 = 7 --> User answer: 7 (Correct)
-4 - 8 = -4 --> User answer: -12 (Wrong)
